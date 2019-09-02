@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/etseng02/tinyapp#readme",
   "dependencies": {
+    "ejs": "^2.6.2",
     "express": "^4.17.1"
   }
 }
