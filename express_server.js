@@ -48,10 +48,18 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  //console.log(req.body.username);
-  //res.cookie("username",req.body.username);
-  //console.log('cookie created successfully');
-  res.redirect('/urls');
+  for (id in users){
+    console.log(users[id].email)
+    console.log(users[id].password)
+    console.log(req.body.email)
+    console.log(req.body.password)
+    if (users[id].email === req.body.email && users[id].password === req.body.password) {
+      res.cookie("user_id", id);
+      console.log("Valid Login");
+      return res.redirect('/urls');
+      }
+  }
+  res.status(403).send('invalid username or password')
 })
 
 app.post('/logout', (req, res) => {
@@ -63,11 +71,18 @@ app.post('/logout', (req, res) => {
 
 app.post('/register', (req, res) => {
   //console.log(req.body.email, req.body.password)
+  for (id in users) {
+    if (users[id].email === req.body.email) {
+      return res.status(400).send('Error Code: 400 Email already exists')
+    }
+  }
+
   if (req.body.email == "" || req.body.password == ""){
     res.status(400).send('Error Code: 400 Bad Request')
   } else {
     let id = generateRandomString()
     createUser(id, req.body.email, req.body.password)
+    //console.log(users);
     res.cookie("user_id", id);
     res.redirect('/urls');
   }
