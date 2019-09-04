@@ -11,10 +11,12 @@
         </div>
         <div class="navbar-nav ml-auto">
           <%if (!username) { %>
-          <form class="form-inline" action="/login" method="POST" align-content: right>
+            <a class="nav-item nav-link" href="/login">Login</a>
+            <a class="nav-item nav-link" href="/register">Register</a>
+          <!-- <form class="form-inline" action="/login" method="POST" align-content: right> 
             <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em;">
             <button type="submit" class="btn btn-primary" style = "text-align: right"  >Login</button>
-          </form>
+          </form>-->
           <% } %>
           <%if (username) { %>
           <form class="form-inline" action="/logout" method="POST">

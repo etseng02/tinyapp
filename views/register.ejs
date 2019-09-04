@@ -3,22 +3,26 @@
 <head>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>URL - TinyApp Example</title>
+  <title>Register - TinyApp</title>
 </head>
 
 <body>
     <% include partial/_header.ejs %>
-  <div class="card text-center">
+  <div class="card text-left">
       <div class="card-header"></div>
       <div class="card-body">
-        <h5 class="card-title">TinyURL for: </h5>
-        <form method="POST" action="/urls/<%= shortURL %>/edit">
-          <textarea name="longURL" rows="1" cols="30"><%= longURL %></textarea>
-          <p><button type="submit">Edit URL</button></p>
+        <h3 class="card-title">Registration Form </h3>
+        <div display: inline-block>
+        <form method="POST" action="/register">
+          <p><font size="+2";>Email Address</font></p>
+          <textarea name="email" rows="1" cols="30" placeholder="Enter Email Address"></textarea>
+          <p><font size="+2";>Password </font>
+          <p><textarea name="password" rows="1" cols="30" placeholder="Password"></textarea></p>
+          <p><button type="submit">Register</button></p>
         </form>
-        <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
+        </div>
       </div>
-    <div class="card-footer text-muted"></div>
+     <!-- <div class="card-footer text-muted"></div>-->
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
