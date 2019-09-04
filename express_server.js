@@ -11,15 +11,16 @@ app.use(cookieParser())
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b6UTxQ": { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  "i3BoGr": { longURL: "https://www.google.ca", userID: "aJ48lW" },
+  "ggBoGr": { longURL: "https://www.reddit.com", userID: "user2RandomID" }
 };
 
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+  "aJ48lW": {
+    id: "aJ48lW", 
+    email: "test1", 
+    password: "test2"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -92,12 +93,16 @@ app.get('/login', (req, res) => {
 })
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]) };
-  res.render("urls_new", templateVars);
+  if (req.cookies["user_id"] === undefined){
+    return res.redirect("/login");
+  } else {
+    let templateVars = { username: userLookup(req.cookies["user_id"]) };
+    res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]), urls: urlDatabase };
+  let templateVars = { username: userLookup(req.cookies["user_id"]), urls: urlsForUser(req.cookies["user_id"]), id: req.cookies["user_id"] };
   res.render("urls_index", templateVars);
 });
 
@@ -146,4 +151,15 @@ const userLookup = function(id){
       return users[id].email
     }
   }
+}
+
+const urlsForUser=function(id){
+  let userURLS = {}
+  for (url in urlDatabase){
+    if (urlDatabase[url].userID === id) {
+      userURLS[url] = urlDatabase[url]
+    }
+  }
+  console.log(userURLS)
+  return(userURLS);
 }
