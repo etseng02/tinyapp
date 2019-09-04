@@ -8,18 +8,20 @@
         <div class="navbar-nav">
           <a class="nav-item nav-link" href="/urls">My URLs</a>
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        </div>
+        <div class="navbar-nav ml-auto">
           <%if (!username) { %>
-          <form class="form-inline" action="/login" method="POST">
-            <input class="form-control" type="text" name="username" placeholder="" style="width: 300px; margin: 1em">
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-        <% } %>
-        <%if (username) { %>
+          <form class="form-inline" action="/login" method="POST" align-content: right>
+            <input class="form-control" type="text" name="username" placeholder="Username" style="width: 300px; margin: 1em;">
+            <button type="submit" class="btn btn-primary" style = "text-align: right"  >Login</button>
+          </form>
+          <% } %>
+          <%if (username) { %>
           <form class="form-inline" action="/logout" method="POST">
             <a class="nav-item nav-link">Logged in as <%= username %></a>
             <button type="submit" class="btn btn-primary">Logout</button>
-        </form>
-        <% } %>
+          </form>
+          <% } %>
         </div>
       </div>
     </nav>
