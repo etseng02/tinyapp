@@ -29,9 +29,16 @@ const users = {
   }
 }
 
-app.post("/urls", (req, res) => {
+app.post("/urls/new", (req, res) => {
   let newURL = generateRandomString();
-  urlDatabase[newURL] = req.body.longURL
+  urlDatabase[newURL] = {
+    id: newURL,
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"]
+  }
+  console.log(urlDatabase[newURL])
+  //urlDatabase[newURL].longURL = req.body.longURL;
+  //urlDatabase[newURL].userID = req.cookies["user_id"];
   res.redirect("/urls/" + newURL)
 });
 
@@ -41,7 +48,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.redirect("/urls/")
 });
 
@@ -111,17 +118,24 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
-  if (longURL) {
-    res.redirect(longURL);
+  let redirectURL = urlDatabase[req.params.shortURL].longURL;
+
+  if (redirectURL) {
+    res.redirect(redirectURL);
   } else {
     res.end("404 ERROR\nThat link does not exist.");
   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  if (req.cookies["user_id"] === undefined){
+    return res.redirect("/login");
+  } else if (req.cookies["user_id"] !== urlDatabase[req.params.shortURL].userID) {
+    return res.status(403).send('Error Code: 403 This Request was blocked by security rules')
+  } else { 
+  let templateVars = { username: userLookup(req.cookies["user_id"]), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   res.render("urls_show", templateVars);
+  }
 });
 
 app.listen(PORT, () => {
