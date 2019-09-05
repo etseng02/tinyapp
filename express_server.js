@@ -3,8 +3,10 @@ const app = express();
 const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
-
-const bodyParser = require("body-parser");
+console.log("BLAH :", process.cwd())
+const helpers = require('./helperFunctions')
+console.log("BLAH :", helpers)
+//const bodyParser = require("body-parser");
 app.use(express.urlencoded({extended: false}))
 
 app.set("view engine", "ejs");
@@ -22,10 +24,12 @@ app.use(cookieSession({
 const urlDatabase = {};
 const users = {}
 
+const {generateRandomString, createUser, getUserbyID, urlsForUser, validateLogin, checkDuplicateOrEmpty, checkForLogin, createNewURL} = helpers(users, urlDatabase)
+
 // ALL POST REQUESTS - Ordered in Happy Path --- Register, Create new URL, Edit, URL, Delete URL, Logout, Log back in.
 
 app.post('/register', (req, res) => {
-  CheckDuplicateOrEmpty(req, res);
+  checkDuplicateOrEmpty(req, res);
   createUser(req, res);
   res.redirect('/urls');
 })
@@ -53,22 +57,27 @@ app.post('/logout', (req, res) => {
 
 app.post('/login', (req, res) => {
   validateLogin(req, res);
+  return res.redirect('/urls');
 })
 
 //ALL GET REQUESTS FOR ALL PAGES
 
 app.get('/', (req, res) => {
-  let templateVars = { username: getUserbyEmail(req.session.user_id) };
   res.redirect("/urls");
 })
 
+app.get("/urls", (req, res) => {
+  let templateVars = { username: getUserbyID(req.session.user_id), urls: urlsForUser(req.session.user_id), id: req.session.user_id };
+  res.render("urls_index", templateVars);
+});
+
 app.get('/register', (req, res) => {
-  let templateVars = { username: getUserbyEmail(req.session.user_id) };
+  let templateVars = { username: getUserbyID(req.session.user_id) };
   res.render("register.ejs", templateVars);
 })
 
 app.get('/login', (req, res) => {
-  let templateVars = { username: getUserbyEmail(req.session.user_id) };
+  let templateVars = { username: getUserbyID(req.session.user_id) };
   res.render("login.ejs", templateVars);
 })
 
@@ -76,14 +85,9 @@ app.get("/urls/new", (req, res) => {
   if (checkForLogin(req) === undefined){
     return res.redirect("/login");
   } else {
-    let templateVars = { username: getUserbyEmail(req.session.user_id) };
+    let templateVars = { username: getUserbyID(req.session.user_id) };
     res.render("urls_new", templateVars);
   }
-});
-
-app.get("/urls", (req, res) => {
-  let templateVars = { username: getUserbyEmail(req.session.user_id), urls: urlsForUser(req.session.user_id), id: req.session.user_id };
-  res.render("urls_index", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
@@ -100,7 +104,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (checkForLogin(req) === true) {
-    let templateVars = { username: getUserbyEmail(req.session.user_id), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
+    let templateVars = { username: getUserbyID(req.session.user_id), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
     res.render("urls_show", templateVars);
   } else if (checkForLogin(req) === undefined) {
     return res.redirect("/login");
@@ -113,84 +117,74 @@ app.listen(PORT, () => {
   console.log(`-------- The server has initalized on PORT ${PORT}!  -------- `);
 });
 
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS DOWN HERE
 
-const generateRandomString = function() {
-  const possibleCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let newShortURL = "";
-  while (newShortURL.length < 6) {
-    newShortURL = newShortURL + possibleCharacters[Math.floor(Math.random()*62)];
-  }
-  return newShortURL;
-};
+// const generateRandomString = function() {
+//   const possibleCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//   let newShortURL = "";
+//   while (newShortURL.length < 6) {
+//     newShortURL = newShortURL + possibleCharacters[Math.floor(Math.random()*62)];
+//   }
+//   return newShortURL;
+// };
 
-const createUser = function(req, res){
-  let id = generateRandomString()
-  req.session.user_id = id;
-  users[id] = {
-    id: id,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 10)
-  }
-  console.log("A new User has been Created:\n", users[id]);
-}
+// const createUser = function(req, res){
+//   let id = generateRandomString()
+//   req.session.user_id = id;
+//   users[id] = {
+//     id: id,
+//     email: req.body.email,
+//     password: bcrypt.hashSync(req.body.password, 10)
+//   }
+//   console.log("A new User has been Created:\n", users[id]);
+// }
 
-const getUserbyEmail = function(id){
+/*const getUserbyID = function(id){
   for (name in users) {
     if (name === id) {
       return users[id].email
     }
   }
-}
+}*/
 
-const urlsForUser=function(id){
-  let userURLS = {}
-  for (url in urlDatabase){
-    if (urlDatabase[url].userID === id) {
-      userURLS[url] = urlDatabase[url]
-    }
-  }
-  return(userURLS);
-}
+// const validateLogin = function(req, res) {
+//   for (id in users){
+//     if (users[id].email === req.body.email && bcrypt.compareSync(req.body.password, users[id].password) === true) {
+//       req.session.user_id = id;
+//       console.log("Valid Login");
+//       return res.redirect('/urls');
+//       }
+//     }
+//     console.log("invalid login")
+//     console.log("User Entered: " +req.body.email)
+//     console.log("User database: ", users)
+//     return res.status(403).send('invalid username or password')
+//   }
 
-const validateLogin = function(req, res) {
-  for (id in users){
-    if (users[id].email === req.body.email && bcrypt.compareSync(req.body.password, users[id].password) === true) {
-      req.session.user_id = id;
-      console.log("Valid Login");
-      return res.redirect('/urls');
-      }
-    }
-    console.log("invalid login")
-    console.log("User Entered: " +req.body.email)
-    console.log("User database: ", users)
-    return res.status(403).send('invalid username or password')
-  }
+// const CheckDuplicateOrEmpty = function(req, res) {
+//   for (id in users) {
+//     if (users[id].email === req.body.email) {
+//       return res.status(400).send('Error Code: 400 Email already exists')
+//     }
+//   }
+//   if (req.body.email == "" || req.body.password == ""){
+//     return res.status(400).send('Error Code: 400 Bad Request')
+//   }
+// }
 
-const CheckDuplicateOrEmpty = function(req, res) {
-  for (id in users) {
-    if (users[id].email === req.body.email) {
-      return res.status(400).send('Error Code: 400 Email already exists')
-    }
-  }
-  if (req.body.email == "" || req.body.password == ""){
-    return res.status(400).send('Error Code: 400 Bad Request')
-  }
-}
+// const checkForLogin = function(req) {
+//   if (req.session.user_id){
+//     return true
+//   } else {
+//     return undefined
+//   }
+// }
 
-const checkForLogin = function(req) {
-  if (req.session.user_id){
-    return true
-  } else {
-    return undefined
-  }
-}
-
-const createNewURL = function(newURL, req, res) {
-  urlDatabase[newURL] = {
-    id: newURL,
-    longURL: req.body.longURL,
-    userID: req.session.user_id
-  }
-  console.log("A new URL has been created: \n", urlDatabase[newURL])
-}
+// const createNewURL = function(newURL, req, res) {
+//   urlDatabase[newURL] = {
+//     id: newURL,
+//     longURL: req.body.longURL,
+//     userID: req.session.user_id
+//   }
+//   console.log("A new URL has been created: \n", urlDatabase[newURL])
+// }
