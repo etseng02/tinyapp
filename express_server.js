@@ -1,16 +1,24 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 const bodyParser = require("body-parser");
 //app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.urlencoded({extended: false}))
-app.use(cookieParser())
+//app.use(cookieParser())
 
 
 app.set("view engine", "ejs");
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['id'],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 const urlDatabase = {
   "b6UTxQ": { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -36,7 +44,7 @@ app.post("/urls/new", (req, res) => {
   urlDatabase[newURL] = {
     id: newURL,
     longURL: req.body.longURL,
-    userID: req.cookies["user_id"]
+    userID: req.session.user_id
   }
   console.log(urlDatabase[newURL])
   //urlDatabase[newURL].longURL = req.body.longURL;
@@ -62,7 +70,7 @@ app.post('/login', (req, res) => {
     console.log(req.body.password)
     //if (users[id].email === req.body.email && users[id].password === req.body.password) {
     if (users[id].email === req.body.email && bcrypt.compareSync(req.body.password, users[id].password)) {
-      res.cookie("user_id", id);
+      req.session.user_id = user;
       console.log("Valid Login");
       return res.redirect('/urls');
       }
@@ -71,7 +79,8 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/logout', (req, res) => {
-  res.clearCookie("user_id",req.body.user_id);
+  //res.clearSession("user_id",req.body.user_id);
+  req.session = null
   res.redirect('/urls');
 })
 
@@ -87,33 +96,35 @@ app.post('/register', (req, res) => {
   } else {
     let id = generateRandomString()
     createUser(id, req.body.email, req.body.password)
-    res.cookie("user_id", id);
+    //req.cookie("user_id", id);
+    req.session.user_id = id;
     console.log(users)
     res.redirect('/urls');
   }
 })
 
 app.get('/register', (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { username: userLookup(req.session.user_id), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("register.ejs", templateVars);
 })
 
 app.get('/login', (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  let templateVars = { username: userLookup(req.session.user_id), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("login.ejs", templateVars);
 })
 
 app.get("/urls/new", (req, res) => {
-  if (req.cookies["user_id"] === undefined){
+  if (req.session.user_id === undefined){
     return res.redirect("/login");
   } else {
-    let templateVars = { username: userLookup(req.cookies["user_id"]) };
+    let templateVars = { username: userLookup(req.session.user_id) };
     res.render("urls_new", templateVars);
   }
+  console.log(userLookup(req.session.user_id))
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { username: userLookup(req.cookies["user_id"]), urls: urlsForUser(req.cookies["user_id"]), id: req.cookies["user_id"] };
+  let templateVars = { username: userLookup(req.session.user_id), urls: urlsForUser(req.session.user_id), id: req.session.user_id };
   res.render("urls_index", templateVars);
 });
 
@@ -132,12 +143,12 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  if (req.cookies["user_id"] === undefined){
+  if (req.session.user_id === undefined){
     return res.redirect("/login");
-  } else if (req.cookies["user_id"] !== urlDatabase[req.params.shortURL].userID) {
+  } else if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
     return res.status(403).send('Error Code: 403 This Request was blocked by security rules')
   } else { 
-  let templateVars = { username: userLookup(req.cookies["user_id"]), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
+  let templateVars = { username: userLookup(req.session.user_id), shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL};
   res.render("urls_show", templateVars);
   }
 });
