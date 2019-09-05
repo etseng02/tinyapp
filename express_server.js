@@ -5,10 +5,7 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 const bodyParser = require("body-parser");
-//app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.urlencoded({extended: false}))
-//app.use(cookieParser())
-
 
 app.set("view engine", "ejs");
 
@@ -47,8 +44,6 @@ app.post("/urls/new", (req, res) => {
     userID: req.session.user_id
   }
   console.log(urlDatabase[newURL])
-  //urlDatabase[newURL].longURL = req.body.longURL;
-  //urlDatabase[newURL].userID = req.cookies["user_id"];
   res.redirect("/urls/" + newURL)
 });
 
@@ -63,44 +58,18 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  for (id in users){
-    console.log(users[id].email)
-    console.log(users[id].password)
-    console.log(req.body.email)
-    console.log(req.body.password)
-    //if (users[id].email === req.body.email && users[id].password === req.body.password) {
-    if (users[id].email === req.body.email && bcrypt.compareSync(req.body.password, users[id].password)) {
-      req.session.user_id = user;
-      console.log("Valid Login");
-      return res.redirect('/urls');
-      }
-  }
-  res.status(403).send('invalid username or password')
+  validateLogin(req, res);
 })
 
 app.post('/logout', (req, res) => {
-  //res.clearSession("user_id",req.body.user_id);
   req.session = null
   res.redirect('/urls');
 })
 
 app.post('/register', (req, res) => {
-  for (id in users) {
-    if (users[id].email === req.body.email) {
-      return res.status(400).send('Error Code: 400 Email already exists')
-    }
-  }
-
-  if (req.body.email == "" || req.body.password == ""){
-    res.status(400).send('Error Code: 400 Bad Request')
-  } else {
-    let id = generateRandomString()
-    createUser(id, req.body.email, req.body.password)
-    //req.cookie("user_id", id);
-    req.session.user_id = id;
-    console.log(users)
-    res.redirect('/urls');
-  }
+  CheckDuplicateOrEmpty(req, res);
+  createUser(req, res);
+  res.redirect('/urls');
 })
 
 app.get('/register', (req, res) => {
@@ -133,12 +102,10 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let redirectURL = urlDatabase[req.params.shortURL].longURL;
-
-  if (redirectURL) {
-    res.redirect(redirectURL);
+  if (urlDatabase[req.params.shortURL]) {
+    res.redirect(urlDatabase[req.params.shortURL].longURL);
   } else {
-    res.end("404 ERROR\nThat link does not exist.");
+    res.status(404).send("404 ERROR\nThat link does not exist.");
   }
 });
 
@@ -157,7 +124,9 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-function generateRandomString() {
+//HELPER FUNCTIONS DOWN HERE
+
+const generateRandomString = function() {
   const possibleCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let newShortURL = "";
   while (newShortURL.length < 6) {
@@ -166,12 +135,15 @@ function generateRandomString() {
   return newShortURL;
 };
 
-const createUser = function(id, email, password){
+const createUser = function(req, res){
+  let id = generateRandomString()
+  req.session.user_id = id;
   users[id] = {
     id: id,
-    email: email,
-    password: bcrypt.hashSync(password, 10)
+    email: req.body.email,
+    password: bcrypt.hashSync(req.body.password, 10)
   }
+  console.log(users);
 }
 
 const userLookup = function(id){
@@ -191,4 +163,34 @@ const urlsForUser=function(id){
   }
   console.log(userURLS)
   return(userURLS);
+}
+
+const validateLogin = function(req, res) {
+  for (id in users){
+    if (users[id].email === req.body.email && bcrypt.compareSync(req.body.password, users[id].password) === true) {
+      req.session.user_id = id;
+      console.log("Valid Login");
+      return res.redirect('/urls');
+      }
+    }
+    return res.status(403).send('invalid username or password')
+  }
+
+const CheckDuplicateOrEmpty = function(req, res) {
+  for (id in users) {
+    if (users[id].email === req.body.email) {
+      return res.status(400).send('Error Code: 400 Email already exists')
+    }
+  }
+  if (req.body.email == "" || req.body.password == ""){
+    return res.status(400).send('Error Code: 400 Bad Request')
+  }
+}
+
+const checkForLogin = function(id) {
+  if (id) {
+    return true
+  } else {
+    return undefined
+  }
 }
