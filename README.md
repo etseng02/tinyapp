@@ -5,22 +5,22 @@ TinyApp is a full stack web application built with Node and Express that allows 
 ## Final Product
 
 You Will need to login or register to create a short URL.
-https://github.com/etseng02/tinyapp/blob/master/docs/login%20to%20create%20a%20short%20url!.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/login%20to%20create%20a%20short%20url!.png)
 
 Registration Page
-https://github.com/etseng02/tinyapp/blob/master/docs/Register.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/Register.png)
 
 Url Overview after registration/login
-https://github.com/etseng02/tinyapp/blob/master/docs/URLS%20view.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/URLS%20view.png)
 
 Creating a new URL
-https://github.com/etseng02/tinyapp/blob/master/docs/create%20a%20new%20url.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/create%20a%20new%20url.png)
 
 The URL is generated! You may edit it if you wish directly after.
-https://github.com/etseng02/tinyapp/blob/master/docs/edit%20the%20url.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/edit%20the%20url.png)
 
 On the URLs overview after generating the short URL you may choose to edit or delete any URLs you have created.
-https://github.com/etseng02/tinyapp/blob/master/docs/urls%20overview%20%2B%20delete.png
+!["Screenshot of URLs page"](https://github.com/etseng02/tinyapp/blob/master/docs/urls%20overview%20%2B%20delete.png)
 
 ## Dependencies
 
