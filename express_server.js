@@ -2,8 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieSession = require('cookie-session');
-//const bcrypt = require('bcrypt');
-const helpers = require('./helperFunctions');
+const helpers = require('./helperFunctions'); //helper functions are located in helperfunctions.js
 app.use(express.urlencoded({extended: false}));
 
 app.set("view engine", "ejs");
@@ -15,10 +14,10 @@ app.use(cookieSession({
 }));
 
 // DATABASES THAT CONTAIN USERS AND LINKS
-
 const urlDatabase = {};
 const users = {};
 
+//defining all functions
 const {generateRandomString, createUser, getUserbyID, urlsForUser, validateLogin, checkDuplicateOrEmpty, checkForLogin, createNewURL} = helpers(users, urlDatabase);
 
 // ALL POST REQUESTS - Ordered in Happy Path --- Register, Create new URL, Edit, URL, Delete URL, Logout, Log back in.
@@ -70,14 +69,16 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// logged in users should not get the registration page
 app.get('/register', (req, res) => {
-  if (checkForLogin(req) === true) {
+  if (checkForLogin(req) === true) { 
     return res.redirect('/urls');
   }
   let templateVars = { username: getUserbyID(req.session.user_id) };
   res.render("register.ejs", templateVars);
 });
 
+// logged in users should not hit the login page
 app.get('/login', (req, res) => {
   if (checkForLogin(req) === true) {
     res.redirect('/urls');
@@ -86,6 +87,7 @@ app.get('/login', (req, res) => {
   res.render("login.ejs", templateVars);
 });
 
+// Not logged in users should not hit the create a new URL page
 app.get("/urls/new", (req, res) => {
   if (checkForLogin(req) === undefined) {
     return res.redirect("/login");
@@ -107,6 +109,7 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+//Short URL get request checks if URL is valid, if the logged in user should be able to edit the URL and if the user is logged in at all.
 app.get("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL] === undefined) {
     return res.status(404).send("404 ERROR\nThat link does not exist.");

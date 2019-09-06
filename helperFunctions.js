@@ -19,7 +19,7 @@ module.exports = function(users, urlDatabase) {
       }
     },
     
-    generateRandomString: generateRandomString,
+    generateRandomString: generateRandomString, //unable to run this function within itself. Took out function and moved it to global scope to run function.
     
     createUser: function(req) {
       let id = generateRandomString();
