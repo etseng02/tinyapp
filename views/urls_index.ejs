@@ -50,10 +50,9 @@
     <%if (!username) { %>
       <h3 style =" text-align:center" >Please login to create short URLS!</h3>
       <h4 style =" text-align:center" >If you do not have a login please register.</h4>
-    <% } %>
 
-    <%if (username == true && urls == {}) { %>
-      <h3 style =" text-align:center" >Create a URL to see your short URLS!</h3>
+    <% } else if (Object.keys(urls).length === 0) { %>
+      <font size="+2"><p style =" text-align:center" ><a class="nav-item nav-link" href="/urls/new">Click here to create a new Short URL</a></p></font>
       <!--<h4 style =" text-align:center" >If you do not have a login please register.</h4>-->
     <% } %>
 
